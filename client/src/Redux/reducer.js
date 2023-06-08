@@ -1,131 +1,126 @@
-import { 
-    GET_DOGS,
-    GET_TEMPERAMENTS,
-    FILTER_BY_VALUE,
-    FILTER_CREATED,
-    FILTER_TEMPERAMENT,
-    SEARCH_NAME,
-    DOGS_DETAIL,
-    POST_DOG,
-    ORDER_NAME,
-    } from './actionsTypes';
+ import {
+   GET_ALL_DOGS,
+   GET_TEMPERAMENTS,
+   GET_FILTER_TEMPERAMENTS,
+   GET_BREED,
+   ORDER_BY_NAME,
+   ORDER_BY_WEIGHT,
+   SHOW_DOG_DETAILS,
+} from "./actionsTypes";
 
- const initialState = {
-    dogs: [],
-    backupDogs: [],
-    temperaments: [],
-    detail: [],
-     }
+const intialState = {
+  dogs: [],
+  temperaments: [],
+  allDogs: [],
+  details: [],
+};
 
-    function rootReducer(state = initialState, action) {
-    switch (action.type) {
-          case GET_DOGS:
-            return {
-              ...state,
-              dogs: action.payload,
-              backupDogs: action.payload
-            };
-          case GET_TEMPERAMENTS:
-            return{
-              ...state,
-              temperaments: action.payload
-            };
-      
-          case ORDER_NAME:
-            let sortedArr = action.payload === "AZ" ? state.dogs.sort(function (a, b) {
-              if (a.name > b.name) {
-                return 1;
-              }
-              if (b.name > a.name) {
-                return -1; 
-              }
-                return 0;
-              })
-                :  state.dogs.sort(function (a, b) {
-              if (a.name > b.name) {
-                return -1;
-              }
-              if (b.name > a.name) {
-                return 1;
-              }
-                return 0;
-              });
-                return {
-                  ...state,
-                  dogs: sortedArr,
-                };
-                         
-               case FILTER_BY_VALUE:
-               let sortedArr3 = action.payload === "High" ? state.dogs.sort(function (a, b) {
-              if (Number(a.height.split("-")[0]) > Number(b.height.split("-")[0])) {
-                return -1;
-              }
-              if ( Number(b.height.split("-")[0]) > Number(a.height.split("-")[0])) {
-                return 1;
-              }
-                return 0;
-              })
-                :  state.dogs.sort(function (a, b) {
-                if (Number(a.height.split("-")[0]) > Number(b.height.split("-")[0])) {
-                  return 1;
-                }
-                if (Number(b.height.split("-")[0]) > Number(a.height.split("-")[0])) {
-                  return -1;
-                }
-                  return 0;
-                });
-                  return {
-                    ...state,
-                    dogs: sortedArr3,
-                  };
-             
-                 
-    
-                  case FILTER_CREATED:  
-                  const prueba = state.backupDogs;
-                  let createFilter;
-                  
-                  if (action.payload === 'ALL') {
-                    createFilter = prueba;
-                  } else {
-                    createFilter = action.payload === 'CREATED'
-                      ? prueba.filter((e) => e.created)
-                      : prueba.filter((e) => !e.created);
-                  }
-                  
-                  return {
-                    ...state,
-                    dogs: createFilter
-                  };
+const rootReducer = (state = intialState, action) => {
+  switch (action.type) {
+    case GET_ALL_DOGS:
+      action.payload.forEach(element => {
+        if (!element.temperaments[0]) {
+          element.temperaments[0] = "no-temperaments" //eliminamos arreglos vacios de temperamentos
+        }
+      });
+      return {
+        ...state,
+        dogs: action.payload,
+        allDogs: action.payload,
+      };
+    case GET_TEMPERAMENTS:
+      const filteresTemp = action.payload.filter((temp) => temp.name !== ""); //eliminar razas con strings vacios
+      return {
+        ...state,
+        temperaments: filteresTemp,
+      };
 
-                 case FILTER_TEMPERAMENT:
-                  let allDogs = state.backupDogs;
-                 let temperamentFilter = action.payload === "ALL" ? allDogs 
-                 : allDogs.filter((dog) => dog.Temperaments?.includes(action.payload));
-                 return {
-                  ...state,
-                  dogs: temperamentFilter,
-                   };
-             
-                case SEARCH_NAME: 
-                 return{
-                 ...state,
-                 dogs: action.payload
-                 }
-             
-                 case DOGS_DETAIL:
-                 return{
-                 ...state,
-                 detail: action.payload
-                 };
-      
-                 case POST_DOG:
-                 return{
-                 ...state
-                }
-                default:
-                return state    
-            }
+    case GET_FILTER_TEMPERAMENTS:
+      const allDogs = state.allDogs;
+      let filteredDogs = [];
+      if (action.payload === "Todos") {
+        filteredDogs = allDogs;
+      } else {
+        for (let i = 0; i < allDogs.length; i++) {
+          let found = allDogs[i].temperaments.find((t) => t === action.payload);
+          if (found) {
+            filteredDogs.push(allDogs[i]);
+          } //todos los perros en la posicion de ese momento
+        }
       }
-              
-      export default rootReducer;
+      return {
+        //return funciona correcto
+        ...state,
+        dogs: filteredDogs,
+      };
+    case GET_BREED:
+      return {
+        ...state,
+        dogs: action.payload,
+      };
+    case ORDER_BY_NAME:
+      const sortedName =
+        action.payload === "A-Z"
+          ? state.allDogs.sort((a, b) => {
+              if (a.name > b.name) {
+                return 1;
+              }
+              if (b.name > a.name) {
+                return -1;
+              }
+              return 0;
+            })
+          : state.allDogs.sort((a, b) => {
+              if (a.name > b.name) {
+                return -1;
+              }
+              if (b.name > a.name) {
+                return 1;
+              }
+              return 0;
+            });
+      return {
+        ...state,
+        dogs: sortedName,
+      };
+
+    case ORDER_BY_WEIGHT:
+      const sortedWeight =
+        action.payload === "min_weight"
+          ? state.allDogs.sort((a, b) => {
+              if (parseInt(a.weight[1]) > parseInt(b.weight[1])) {
+                return 1;
+              }
+              if (parseInt(b.weight[1]) > parseInt(a.weight[1])) {
+                return -1;
+              }
+              return 0;
+            })
+          : state.allDogs.sort((a, b) => {
+              if (parseInt(a.weight[1]) > parseInt(b.weight[1])) {
+                return -1;
+              }
+              if (parseInt(b.weight[1]) > parseInt(a.weight[1])) {
+                return 1;
+              }
+              return 0;
+            });
+      return {
+        ...state,
+        dogs: sortedWeight,
+      };
+    case SHOW_DOG_DETAILS:
+      let myDetails = action.payload
+      if (!myDetails[0].temperaments[0]) { //agregamos "no-temperaments" a arreglos sin elementos dentro
+        myDetails[0].temperaments[0] = "no-temperaments"
+      }
+      return {
+        ...state,
+        details: myDetails
+      };
+    default:
+      return state;
+  }
+};
+
+export default rootReducer;
